@@ -20,7 +20,7 @@ export class LdoFactory<Type extends Record<string, any>> {
   }
 
   public async parse(
-    entryNodeInput: string | NamedNode | BlankNode,
+    id: string | NamedNode | BlankNode,
     data: string | JsonLdDocument | Dataset,
     options?: ParserOptions
   ): Promise<LinkedDataObject<Type>> {
@@ -36,10 +36,7 @@ export class LdoFactory<Type extends Record<string, any>> {
         format: "application/json-ld",
       });
     }
-    const entryNode =
-      typeof entryNodeInput === "string"
-        ? df.namedNode(entryNodeInput)
-        : entryNodeInput;
+    const entryNode = typeof id === "string" ? df.namedNode(id) : id;
     return createLinkedDataObject(
       dataset.startTransaction(),
       entryNode,
@@ -47,7 +44,18 @@ export class LdoFactory<Type extends Record<string, any>> {
     );
   }
 
-  public create(inputData: Type): LinkedDataObject<Type> {
+  public new(id?: string | NamedNode | BlankNode): LinkedDataObject<Type> {
+    const entryNode =
+      typeof id === "string" ? df.namedNode(id) : id || df.blankNode();
+    const dataset = createSubscribableDataset();
+    return createLinkedDataObject(
+      dataset.startTransaction(),
+      entryNode,
+      this.shapeType
+    );
+  }
+
+  public fromJson(inputData: Type): LinkedDataObject<Type> {
     const dataset = createSubscribableDataset();
     const entryNode = inputData["@id"]
       ? df.namedNode(inputData["@id"])

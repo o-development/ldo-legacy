@@ -6,8 +6,9 @@ import {
   DatasetChanges,
   TransactionalDataset,
 } from "o-dataset-pack";
-import { datasetToString } from "./datasetToString";
+import { datasetToJsonLd, datasetToString } from "./datasetConverters";
 import { ShapeType } from "./ShapeType";
+import { JsonLdDocument } from "jsonld";
 
 export function createLinkedDataObject<Type>(
   dataset: TransactionalDataset<Quad>,
@@ -35,6 +36,9 @@ function getLdoMethods<Type>(
   shapeType: ShapeType<Type>
 ): LdoMethods<Type> {
   return {
+    /**
+     * Clone
+     */
     $clone(): LinkedDataObject<Type> {
       const subscribableDataset = createSubscribableDataset();
       subscribableDataset.addAll(dataset);
@@ -44,28 +48,69 @@ function getLdoMethods<Type>(
         shapeType
       );
     },
+
+    /**
+     * Changes
+     */
     $changes(): DatasetChanges {
       return dataset.getChanges();
     },
+
+    /**
+     * Dataset
+     */
     $dataset(): Dataset {
       return dataset;
     },
+
+    /**
+     * isValid
+     */
     $isValid(): boolean {
       throw new Error("Not Implemented");
     },
-    async $sparqlUpdate(): Promise<string> {
+
+    /**
+     * toSparqlUpdate
+     */
+    async $toSparqlUpdate(): Promise<string> {
       const changes = dataset.getChanges();
       let output = "";
       if (changes.added) {
-        output += `INSERT DATA { ${await datasetToString(changes.added)} }`;
+        output += `INSERT DATA { ${await datasetToString(changes.added, {
+          format: "N-Triples",
+        })} }`;
       }
       if (changes.added && changes.removed) {
         output += "; ";
       }
       if (changes.removed) {
-        output += `DELETE DATA { ${await datasetToString(changes.removed)} }`;
+        output += `DELETE DATA { ${await datasetToString(changes.removed, {
+          format: "N-Triples",
+        })} }`;
       }
-      return output;
+      return output.replaceAll("\n", " ");
+    },
+
+    /**
+     * toTurtle
+     */
+    async $toTurtle(): Promise<string> {
+      return datasetToString(dataset, {});
+    },
+
+    /**
+     * toJsonLd
+     */
+    async $toJsonLd(): Promise<JsonLdDocument> {
+      return datasetToJsonLd(dataset, shapeType.context);
+    },
+
+    /**
+     * toNTriples
+     */
+    async $toNTriples(): Promise<string> {
+      return datasetToString(dataset, { format: "N-Triples" });
     },
   };
 }

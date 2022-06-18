@@ -1,4 +1,5 @@
 import { Dataset } from "@rdfjs/types";
+import { JsonLdDocument } from "jsonld";
 import { DatasetChanges } from "o-dataset-pack";
 
 export interface LdoMethods<Type> {
@@ -6,7 +7,10 @@ export interface LdoMethods<Type> {
   $changes(): DatasetChanges;
   $dataset(): Dataset;
   $isValid(): boolean;
-  $sparqlUpdate(): Promise<string>;
+  $toSparqlUpdate(): Promise<string>;
+  $toTurtle(): Promise<string>;
+  $toJsonLd(): Promise<JsonLdDocument>;
+  $toNTriples(): Promise<string>;
 }
 
 export type LinkedDataObject<Type> = Type & LdoMethods<Type>;

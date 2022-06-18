@@ -13,6 +13,6 @@ async function run() {
   );
   profile.fn = "Cool Dude";
   console.log(profile.$dataset().toString());
-  console.log(await profile.$sparqlUpdate());
+  console.log(await profile.$toSparqlUpdate());
 }
 run();
