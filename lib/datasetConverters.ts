@@ -1,7 +1,8 @@
 import { Dataset } from "@rdfjs/types";
 import { ContextDefinition, JsonLdDocument } from "jsonld";
 import { Writer, WriterOptions } from "n3";
-import { JsonLdSerializer } from "jsonld-streaming-serializer";
+// import SerializerJsonld from "@rdfjs/serializer-jsonld";
+// import { Readable } from "readable-stream";
 
 export async function datasetToString(
   dataset: Dataset,
@@ -23,22 +24,30 @@ export async function datasetToString(
 }
 
 export async function datasetToJsonLd(
-  dataset: Dataset,
+  _dataset: Dataset,
   _context: ContextDefinition
 ): Promise<JsonLdDocument> {
-  return new Promise((resolve, reject) => {
-    // JsonLdSerializer's context is not compatible
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const serializer = new JsonLdSerializer();
-    let stringJson = "";
-    serializer.on("data", (data) => (stringJson += data));
-    serializer.on("error", reject);
-    serializer.on("end", () => {
-      resolve(JSON.parse(stringJson));
-    });
-    dataset.forEach((quad) => {
-      serializer.write(quad);
-    });
-    serializer.end();
-  });
+  throw new Error("Not Implemented");
+  // return new Promise((resolve, reject) => {
+  //   const serializerJsonld = new SerializerJsonld();
+  //   const input = new Readable({
+  //     objectMode: true,
+  //     read: () => {
+  //       dataset.forEach((quad) => {
+  //         input.push(quad);
+  //       });
+  //       input.push(null);
+  //     },
+  //   });
+  //   const output = serializerJsonld.import(input);
+
+  //   output.on("data", (jsonld) => {
+  //     resolve(jsonld);
+  //   });
+  //   /* istanbul ignore next */
+  //   output.on("error", (err) => {
+  //     /* istanbul ignore next */
+  //     reject(err);
+  //   });
+  // });
 }

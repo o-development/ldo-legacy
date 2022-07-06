@@ -12,7 +12,8 @@ async function run() {
     { baseIRI: "https://solidweb.me/jackson/profile/card" }
   );
   profile.fn = "Cool Dude";
-  console.log(profile.$dataset().toString());
-  console.log(await profile.$toSparqlUpdate());
+  // console.log(profile.$dataset().toString());
+  // console.log(await profile.$toSparqlUpdate());
+  console.log(await profile.$toJsonLd());
 }
 run();
