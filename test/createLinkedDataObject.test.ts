@@ -24,6 +24,7 @@ describe("createLinkedDataObject", () => {
   it("clones the current linked data object", () => {
     const clonedObject = profileLdo.$clone();
     clonedObject.name = "Beeboo";
+    expect(clonedObject.name).toBe("Beeboo");
     expect(clonedObject.$dataset().size).toBe(1);
     expect(profileLdo.$dataset().size).toBe(0);
   });
