@@ -1,5 +1,6 @@
 import { Dataset } from "@rdfjs/types";
 import { JsonLdDocument } from "jsonld";
+import { WriterOptions } from "n3";
 import { DatasetChanges } from "o-dataset-pack";
 
 export interface LdoMethods<Type> {
@@ -8,6 +9,7 @@ export interface LdoMethods<Type> {
   $dataset(): Dataset;
   $isValid(): boolean;
   $toSparqlUpdate(): Promise<string>;
+  $serialize(options: WriterOptions): Promise<string>;
   $toTurtle(): Promise<string>;
   $toJsonLd(): Promise<JsonLdDocument>;
   $toNTriples(): Promise<string>;

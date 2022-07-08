@@ -80,6 +80,13 @@ describe("createLinkedDataObject", () => {
     );
   });
 
+  it("uses the serialize method", async () => {
+    profileLdo.name = "Captain of Coolness";
+    expect(await profileLdo.$serialize({ format: "Turtle" })).toBe(
+      '<https://example.com/item> <http://xmlns.com/foaf/0.1/name> "Captain of Coolness".\n'
+    );
+  });
+
   it.skip("translates into jsonld", async () => {
     profileLdo.name = "Captain of Coolness";
     expect(await profileLdo.$toJsonLd()).toEqual([

@@ -9,6 +9,7 @@ import {
 import { datasetToJsonLd, datasetToString } from "./datasetConverters";
 import { ShapeType } from "./ShapeType";
 import { JsonLdDocument } from "jsonld";
+import { WriterOptions } from "n3";
 
 export function createLinkedDataObject<Type>(
   dataset: TransactionalDataset<Quad>,
@@ -90,6 +91,13 @@ function getLdoMethods<Type>(
         })} }`;
       }
       return output.replaceAll("\n", " ");
+    },
+
+    /**
+     * Serialize
+     */
+    async $serialize(options: WriterOptions): Promise<string> {
+      return datasetToString(dataset, options);
     },
 
     /**
