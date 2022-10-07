@@ -97,8 +97,16 @@ describe("createLinkedDataObject", () => {
     ]);
   });
 
-  it("isValid throws and error", async () => {
-    profileLdo.name = "Captain of Coolness";
-    await expect(() => profileLdo.$isValid()).toThrow("Not Implemented");
+  describe("$isValid", () => {
+    it("returns true if the data matches the ShEx shape", async () => {
+      profileLdo.name = "Captain of Coolness";
+      profileLdo.type = [{ "@id": "Person" }, { "@id": "Person2" }];
+      profileLdo.inbox = { "@id": "https://coolInbox.com" };
+      await expect(profileLdo.$isValid()).toBe(true);
+    });
+    it("returns false if the data doesn't match the ShEx shape", async () => {
+      profileLdo.name = "Captain of Coolness";
+      await expect(profileLdo.$isValid()).toBe(false);
+    });
   });
 });
