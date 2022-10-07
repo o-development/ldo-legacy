@@ -1,6 +1,6 @@
 {
   "name": "ldo",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -42,8 +42,12 @@
   },
   "dependencies": {
     "@rdfjs/data-model": "^1.2.0",
+    "@shexjs/neighborhood-rdfjs": "1.0.0-alpha.24",
+    "@shexjs/util": "1.0.0-alpha.21",
+    "@shexjs/validator": "1.0.0-alpha.21",
+    "@shexjs/visitor": "1.0.0-alpha.21",
     "buffer": "^6.0.3",
-    "jsonld-dataset-proxy": "^0.0.7",
+    "jsonld-dataset-proxy": "^0.0.8",
     "n3": "^1.16.2",
     "o-dataset-pack": "^0.2.11",
     "readable-stream": "^4.0.0"

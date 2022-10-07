@@ -9,7 +9,12 @@ import {
 import { datasetToJsonLd, datasetToString } from "./datasetConverters";
 import { ShapeType } from "./ShapeType";
 import { JsonLdDocument } from "jsonld";
-import { WriterOptions } from "n3";
+import { WriterOptions, Store } from "n3";
+import ShexValidator from "@shexjs/validator";
+// The typings for neighborhood-rdfjs are incorrect
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { ctor } from "@shexjs/neighborhood-rdfjs";
 
 export function createLinkedDataObject<Type>(
   dataset: TransactionalDataset<Quad>,
@@ -68,7 +73,23 @@ function getLdoMethods<Type>(
      * isValid
      */
     $isValid(): boolean {
-      throw new Error("Not Implemented");
+      // Transfer Quads into an N3 Datastore
+      const g = new Store();
+      dataset.forEach((quad) => {
+        g.addQuad(quad);
+      });
+      // Validate
+      const validationResult = ShexValidator.construct(
+        shapeType.schema,
+        ctor(g),
+        {}
+      ).validate([
+        {
+          node: entryNode.value,
+          shape: shapeType.shape,
+        },
+      ]);
+      return !validationResult.errors;
     },
 
     /**

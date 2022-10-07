@@ -26,11 +26,11 @@ describe("LdoFactory", () => {
 
   it("initializes a profile using the fromJson method", () => {
     const profile = profileFactory.fromJson({
-      type: ["Person", "Person2"],
-      inbox: "https://inbox.com",
+      type: [{ "@id": "Person" }, { "@id": "Person2" }],
+      inbox: { "@id": "https://inbox.com" },
       fn: "Diplo",
     });
-    expect(profile.inbox).toBe("https://inbox.com");
+    expect(profile.inbox).toEqual({ "@id": "https://inbox.com" });
     expect(profile.fn).toBe("Diplo");
     expect(profile["@id"]).toBe(undefined);
   });
@@ -38,11 +38,11 @@ describe("LdoFactory", () => {
   it("initializes a profile with an id using the fromJson method", () => {
     const profile = profileFactory.fromJson({
       "@id": "https://example.com/person1",
-      type: ["Person", "Person2"],
-      inbox: "https://inbox.com",
+      type: [{ "@id": "Person" }, { "@id": "Person2" }],
+      inbox: { "@id": "https://inbox.com" },
       fn: "Diplo",
     });
-    expect(profile.inbox).toBe("https://inbox.com");
+    expect(profile.inbox).toEqual({ "@id": "https://inbox.com" });
     expect(profile.fn).toBe("Diplo");
     expect(profile["@id"]).toBe("https://example.com/person1");
   });

@@ -838,6 +838,7 @@ export const profileContext: ContextDefinition = {
   },
   inbox: {
     "@id": "http://www.w3.org/ns/ldp#inbox",
+    "@type": "@id",
   },
   preferencesFile: {
     "@id": "http://www.w3.org/ns/pim/space#preferencesFile",
@@ -895,17 +896,17 @@ export interface EmailShape {
    * The type of email.
    */
   type?:
-    | "Dom"
-    | "Home"
-    | "ISDN"
-    | "Internet"
-    | "Intl"
-    | "Label"
-    | "Parcel"
-    | "Postal"
-    | "Pref"
-    | "Work"
-    | "X400";
+    | { "@id": "Dom" }
+    | { "@id": "Home" }
+    | { "@id": "ISDN" }
+    | { "@id": "Internet" }
+    | { "@id": "Intl" }
+    | { "@id": "Label" }
+    | { "@id": "Parcel" }
+    | { "@id": "Postal" }
+    | { "@id": "Pref" }
+    | { "@id": "Work" }
+    | { "@id": "X400" };
   /**
    * The value of an email as a mailto link (Example <mailto:jane@example.com>)
    */
@@ -919,17 +920,17 @@ export interface PhoneNumberShape {
    * They type of Phone Number
    */
   type?:
-    | "Dom"
-    | "Home"
-    | "ISDN"
-    | "Internet"
-    | "Intl"
-    | "Label"
-    | "Parcel"
-    | "Postal"
-    | "Pref"
-    | "Work"
-    | "X400";
+    | { "@id": "Dom" }
+    | { "@id": "Home" }
+    | { "@id": "ISDN" }
+    | { "@id": "Internet" }
+    | { "@id": "Intl" }
+    | { "@id": "Label" }
+    | { "@id": "Parcel" }
+    | { "@id": "Postal" }
+    | { "@id": "Pref" }
+    | { "@id": "Work" }
+    | { "@id": "X400" };
   /**
    * The value of a phone number as a tel link (Example <tel:555-555-5555>)
    */
@@ -955,7 +956,7 @@ export interface SolidProfileShape {
   /**
    * Defines the node as a Person (from Schema.org) | Defines the node as a Person (from foaf)
    */
-  type: ("Person" | "Person2")[];
+  type: ({ "@id": "Person" } | { "@id": "Person2" })[];
   /**
    * The formatted name of a person. Example: John Smith
    */
@@ -1007,7 +1008,7 @@ export interface SolidProfileShape {
   /**
    * The user's LDP inbox to which apps can post notifications
    */
-  inbox: string;
+  inbox: { "@id": string };
   /**
    * The user's preferences
    */
@@ -1040,7 +1041,12 @@ export interface TrustedAppShape {
   /**
    * The level of access provided to this origin
    */
-  mode: ("Append" | "Control" | "Read" | "Write")[];
+  mode: (
+    | { "@id": "Append" }
+    | { "@id": "Control" }
+    | { "@id": "Read" }
+    | { "@id": "Write" }
+  )[];
   /**
    * The app origin the user trusts
    */
