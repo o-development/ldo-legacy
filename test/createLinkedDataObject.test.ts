@@ -97,7 +97,7 @@ describe("createLinkedDataObject", () => {
     ]);
   });
 
-  describe("$isValid", () => {
+  describe.skip("$isValid", () => {
     it("returns true if the data matches the ShEx shape", async () => {
       profileLdo.name = "Captain of Coolness";
       profileLdo.type = [{ "@id": "Person" }, { "@id": "Person2" }];
