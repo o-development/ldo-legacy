@@ -58,7 +58,7 @@ describe("createLinkedDataObject", () => {
     );
     profileLdo.name = "Captain of Coolness";
     expect(await profileLdo.$toSparqlUpdate()).toBe(
-      `INSERT DATA { <https://example.com/item> <http://xmlns.com/foaf/0.1/name> "Captain of Coolness" .  }; DELETE DATA { <https://example.com/item> <http://xmlns.com/foaf/0.1/name> "Mr. Cool Dude" .  }`
+      `DELETE DATA { <https://example.com/item> <http://xmlns.com/foaf/0.1/name> "Mr. Cool Dude" .  }; INSERT DATA { <https://example.com/item> <http://xmlns.com/foaf/0.1/name> "Captain of Coolness" .  }`
     );
   });
 

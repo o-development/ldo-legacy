@@ -95,16 +95,16 @@ function getLdoMethods<Type>(
     async $toSparqlUpdate(): Promise<string> {
       const changes = dataset.getChanges();
       let output = "";
-      if (changes.added) {
-        output += `INSERT DATA { ${await datasetToString(changes.added, {
+      if (changes.removed) {
+        output += `DELETE DATA { ${await datasetToString(changes.removed, {
           format: "N-Triples",
         })} }`;
       }
       if (changes.added && changes.removed) {
         output += "; ";
       }
-      if (changes.removed) {
-        output += `DELETE DATA { ${await datasetToString(changes.removed, {
+      if (changes.added) {
+        output += `INSERT DATA { ${await datasetToString(changes.added, {
           format: "N-Triples",
         })} }`;
       }
