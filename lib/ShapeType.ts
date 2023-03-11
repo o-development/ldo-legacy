@@ -1,7 +1,9 @@
 import { ContextDefinition } from "jsonld";
 import { Schema } from "shexj";
+import { LdoBase } from "./util";
 
-export type ShapeType<Type> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ShapeType<Type extends LdoBase> = {
   schema: Schema;
   shape: string;
   context: ContextDefinition;

@@ -1,19 +1,36 @@
 import "cross-fetch/polyfill";
-import { ProfileShapeFactory } from "./profileData";
+import {
+  commitTransaction,
+  getDataset,
+  parseRdf,
+  startTransaction,
+  toNTriples,
+  toSparqlUpdate,
+} from "../lib";
+import { ProfileShapeType } from "./profileData";
 
 async function run() {
   // Fetch profile
   const profileRes = await fetch("https://solidweb.me/jackson/profile/card");
-  const profileTurtle = await profileRes.text();
-  console.log(profileTurtle);
-  const profile = await ProfileShapeFactory.parse(
-    "https://solidweb.me/jackson/profile/card#me",
-    profileTurtle,
-    { baseIRI: "https://solidweb.me/jackson/profile/card" }
-  );
+  const rawTurtle = await profileRes.text();
+  // const dataset = await parseRdf(rawTurtle, {
+  //   baseIRI: "https://solidweb.me/jackson/profile/card",
+  // });
+
+  const ldoDataset = await parseRdf(rawTurtle, {
+    baseIRI: "https://solidweb.me/jackson/profile/card",
+  });
+
+  const profile = ldoDataset
+    .getType(ProfileShapeType)
+    .fromSubject("https://solidweb.me/jackson/profile/card#me");
+
+  startTransaction(profile);
   profile.fn = "Cool Dude";
-  // console.log(profile.$dataset().toString());
-  // console.log(await profile.$toSparqlUpdate());
-  console.log(await profile.$toJsonLd());
+
+  console.log(getDataset(profile).toString());
+  console.log(await toSparqlUpdate(profile));
+  commitTransaction(profile);
+  console.log(await toNTriples(profile));
 }
 run();

@@ -1,6 +1,6 @@
 import { Schema } from "shexj";
 import { ContextDefinition } from "jsonld";
-import { ShapeType, LdoFactory } from "../lib";
+import { ShapeType } from "../lib";
 
 export const profileShex: Schema = {
   type: "Schema",
@@ -1059,15 +1059,11 @@ export const ProfileShapeType: ShapeType<SolidProfileShape> = {
   context: profileContext,
 };
 
-export const ProfileShapeFactory = new LdoFactory(ProfileShapeType);
-
 export const TrustedAppShapeType: ShapeType<TrustedAppShape> = {
   schema: profileShex,
   shape: "https://shaperepo.com/schemas/solidProfile#TrustedAppShape",
   context: profileContext,
 };
-
-export const TrustedAppShapeFactory = new LdoFactory(TrustedAppShapeType);
 
 export const AddressShapeType: ShapeType<AddressShape> = {
   schema: profileShex,
@@ -1075,15 +1071,11 @@ export const AddressShapeType: ShapeType<AddressShape> = {
   context: profileContext,
 };
 
-export const AddressShapeFactory = new LdoFactory(AddressShapeType);
-
 export const EmailShapeType: ShapeType<EmailShape> = {
   schema: profileShex,
   shape: "https://shaperepo.com/schemas/solidProfile#EmailShape",
   context: profileContext,
 };
-
-export const EmailShapeFactory = new LdoFactory(EmailShapeType);
 
 export const PhoneNumberShapeType: ShapeType<PhoneNumberShape> = {
   schema: profileShex,
@@ -1091,12 +1083,8 @@ export const PhoneNumberShapeType: ShapeType<PhoneNumberShape> = {
   context: profileContext,
 };
 
-export const PhoneNumberFactory = new LdoFactory(PhoneNumberShapeType);
-
 export const RSAPublicKeyShapeType: ShapeType<RSAPublicKeyShape> = {
   schema: profileShex,
   shape: "https://shaperepo.com/schemas/solidProfile#RSAPublicKeyShape",
   context: profileContext,
 };
-
-export const RSAPublicKeyShapeFactory = new LdoFactory(RSAPublicKeyShapeType);

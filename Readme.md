@@ -70,88 +70,71 @@ npm run build:ldo
 ```
 
 This will generate five files:
- - `./ldo/foafProfile.ldoFactory.ts`
+ - `./ldo/foafProfile.shapeTypes.ts` <-- This is the important file
  - `./ldo/foafProfile.typings.ts`
  - `./ldo/foafProfile.schema.ts`
  - `./ldo/foafProfile.context.ts`
- - `./ldo/foafProfile.shapeTypes.ts`
 
-## Making a Linked Data Object and Converting from RDF
-The 'LdoFactory' is responsible for creating Linked Data Objects. To use it, just import it from the generated file.
+## Simple Example
+
+Below is a simple example of LDO in a real use-case (changing the name on a Solid Pod)
 
 ```typescript
-import { FoafProfileFactory } from "./ldo/foafProfile.ldoFactory.ts";
+import { parseRdf, startTransaction, toSparqlUpdate } from "ldo";
+import { FoafProfileShapeType } from "./ldo/foafProfile.shapeTypes.ts";
+
+// Fetch profile
+fetch("https://solidweb.me/jackson/profile/card").then(async (response) => {
+  // Get raw text
+  const rawTurtle = await response.text();
+  // Parse the raw RDF. This yeilds an "LdoDataset"
+  const ldoDataset = await parseRdf(rawTurtle, {
+    baseIRI: "https://solidweb.me/jackson/profile/card",
+  });
+  // Create a linked data object by telling the dataset the type and subject of
+  // the object
+  const profile = ldoDataset
+    .usingType(FoafProfileShapeType)
+    .fromSubject("https://solidweb.me/jackson/profile/card#me");
+  // Start a transaction
+  startTransaction(profile);
+  // Make a modification
+  profile.fn = "Cool Dude";
+  // Save the new information to the Pod
+  await fetch("https://solidweb.me/jackson/profile/card", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/sparql-update",
+    },
+    // The body is a Sparql Update the has all the changes in this transaction
+    body: await toSparqlUpdate(profile),
+  });
+});
 ```
 
-### Create a new empty Linked Data Object
+## Getting an LDO Dataset
+
+An LDO Dataset is a kind of [RDF JS Dataset](https://rdf.js.org/dataset-spec/) that can create linked data objects.
+
+LDO datasets can be created in two ways:
+
+`createLdoDataset(initialDataset?: Dataset<Quad, Quad> | Quad[])`
 ```typescript
-import { LinkedDataObject } from "ldo";
-import { FoafProfileFactory } from "./ldo/foafProfile.ldoFactory.ts";
-import { FoafProfile } from "./ldo/foafProfile.typings";
+import { createLdoDataset } from "ldo";
 
-const emptyProfile: LinkedDataObject<FoafProfile>  =
-  FoafProfileFactory.new("https://example.com/profile1");
+const ldoDataset = createLdoDataset();
 ```
 
-`new` takes one optional parameter: `id`. This the url of the Linked Data Object's `subject`. If left blank, the `subject` will be a blank node.
+ - `initialDataset`: An optional dataset or array of quads for the new dataset.
 
-### Create a new Linked Data Object from JSON
+`parseRdf(data: string, parserOptions?: ParserOptions)`
 ```typescript
-import { LinkedDataObject } from "ldo";
-import { FoafProfileFactory } from "./ldo/foafProfile.ldoFactory.ts";
-import { FoafProfile } from "./ldo/foafProfile.typings";
+import { parseRdf } from "ldo";
 
-const profileJson: FoafProfile = {
-  "@id": "https://example.com/aangProfile",
-  type: "Person",
-  name: "Aang",
-  knows: [
-    {
-      "@id": "https://example.com/kataraProfile",
-      type: "Person",
-      name: "Katara",
-    }
-  ]
-}
-const profile: LinkedDataObject<FoafProfile> =
-  FoafProfileFactory.fromJson(profileJson);
+const rawTurtle = "...";
+const ldoDataset = parseRdf(rawTurtle, { baseIRI: "https://example.com/" });
 ```
 
-The above code converts a simple JSON object into a Linked Data Object.
-
-### Creating a Linked Data Object from RDF
-```typescript
-import { LinkedDataObject } from "ldo";
-import { FoafProfileFactory } from "./ldo/foafProfile.ldoFactory.ts";
-import { FoafProfile } from "./ldo/foafProfile.typings";
-
-async function start() {
-  const rawTurtle: string = `
-  @prefix foaf: <http://xmlns.com/foaf/0.1/>.
-  @prefix ex: <https://example.com/>.
-
-  ex:aang
-    a foaf:Person
-    foaf:name "Aang";
-    foaf:knows ex:katara.
-
-  ex:katara
-    a foaf:Person;
-    foaf:name "Katara";
-    foaf:knows ex:Aang;
-  `;
-
-  const profile: LinkedDataObject<FoafProfile> = await FoafProfileFactory.parse(
-    "https://example.com/aang",
-    rawTurtle,
-    { format: "Turtle", baseIRI: "https://example.com/" }
-  );
-}
-```
-
-The `parse` method takes in three parameters.
-
- - `id`: The url for the Linked Data Object's `subject`. This field accepts a `string`, a `namedNode` from [`@rdfjs/data-model`](https://www.npmjs.com/package/@rdfjs/data-model), or a `blankNode` from [`@rdfjs/data-model`](https://www.npmjs.com/package/@rdfjs/data-model).
  - `data`: The raw data to parse as a `string`.
  - `options` (optional): Parse options containing the following keys:
     - `format` (optional): The format the data is in. The following are acceptable formats: `Turtle`, `TriG`, `N-Triples`, `N-Quads`, `N3`, `Notation3`.
@@ -159,22 +142,71 @@ The `parse` method takes in three parameters.
     - `blankNodePrefix` (optional): If blank nodes should have a prefix, that should be provided here.
     - `factory` (optional): a RDF Data Factory from  [`@rdfjs/data-model`](https://www.npmjs.com/package/@rdfjs/data-model). 
 
-### Creating a Linked Data Object from an RDF.js Dataset
-```typescript
-import { LinkedDataObject } from "ldo";
-import { FoafProfileFactory } from "./ldo/foafProfile.ldoFactory.ts";
-import { FoafProfile } from "./ldo/foafProfile.typings";
-import { Dataset } from "@rdfjs/types";
+## Getting a Linked Data Object
+Once you have an LdoDataset we can get a Linked Data Object. A linked data object feels just like a JavaScript object literal, but when you make modifications to it, it will affect the underlying LdoDataset.
 
-aysnc function start() {
-  const dataset: Dataset = // initialize dataset
-  const profile: LinkedDataObject<FoafProfile> = await FoafProfileFactory.parse(
-    "https://example.com/aang",
-    dataset
-  );
-}
+Thie first step is defining which Shape Type you want to retrieve from the dataset. We can use the generated shape types and the `usingType()` method for this.
+
+```typescript
+import { FoafProfileShapeType } from "./ldo/foafProfile.shapeTypes.ts";
+
+// ... Get the LdoDataset
+
+ldoDataset.usingType(FoafProfileShapeType);
 ```
-You can also import an RDFJS dataset in the `parse` method.
+
+Next, we want to identify exactly what part of the dataset we want to extract. We can do this in a few ways:
+
+### `.fromSubject(entryNode)`
+`fromSubject` lets you define a an `entryNode`, the place of entry for the graph. The object returned by `jsonldDatasetProxy` will represent the given node. This parameter accepts both `namedNode`s and `blankNode`s. `fromSubject` takes a generic type representing the typescript type of the given subject.
+
+```typescript
+const profile = ldoDataset
+  .usingType(FoafProfileShapeType)
+  .fromSubject("http://example.com/Person1");
+```
+
+### `.matchSubject(predicate?, object?, graph?)`
+`matchSubject` returns a Jsonld Dataset Proxy representing all subjects in the dataset matching the given predicate, object, and graph.
+
+```typescript
+const profiles = ldoDataset
+  .usingType(FoafProfileShapeType)
+  .matchSubject(
+    namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+    namedNode("http://xmlns.com/foaf/0.1/Person")
+  );
+profiles.forEach((person) => {
+  console.log(person.fn);
+});
+```
+
+### `.matchObject(subject?, predicate?, object?)`
+`matchObject` returns a Jsonld Dataset Proxy representing all objects in the dataset matching the given subject, predicate, and graph.
+
+```typescript
+const friendsOfPerson1 = ldoDataset
+  .usingType(FoafProfileShapeType)
+  .matchSubject(
+    namedNode("http://example.com/Person1"),
+    namedNode("http://xmlns.com/foaf/0.1/knows")
+  );
+friendsOfPerson1.forEach((person) => {
+  console.log(person.fn);
+});
+```
+
+### `.fromJson(inputData)`
+`fromJson` will take any regular Json, add the information to the dataset, and return a Jsonld Dataset Proxy representing the given data.
+
+```typescript
+const person2 = ldoDataset
+  .usingType(FoafProfileShapeType)
+  .fromJson({
+    "@id": "http://example.com/Person2",
+    fn: "Jane Doe"],
+  });
+```
 
 ## Getting and Setting Data on a Linked Data Object
 Once you've created a Linked Data Object, you can get and set data as if it were a normal TypeScript Object. For specific details, see the documentation at [JSONLD Dataset Proxy](https://github.com/o-development/jsonld-dataset-proxy/blob/master/Readme.md).
@@ -185,7 +217,7 @@ import { FoafProfileFactory } from "./ldo/foafProfile.ldoFactory.ts";
 import { FoafProfile } from "./ldo/foafProfile.typings";
 
 aysnc function start() {
-  const profile: LinkedDataObject<FoafProfile> = // Create LDO
+  const profile: FoafProfile = // Create LDO
   // Logs "Aang"
   console.log(profile.name);
   // Logs "Person"
@@ -209,27 +241,25 @@ aysnc function start() {
 ```
 
 ## Converting a Linked Data Object back to RDF
-A linked data object can be converted into RDF in multiple ways
+A linked data object can be converted into RDF in multiple ways:
 
-### `$toTurtle()`
+### `toTurtle(linkedDataObject)`
 ```typescript
-const rawTurtle: string = await profile.$toTurtle();
+import { toTurtle } from "ldo"
+// ...
+const rawTurtle: string = await toTurtle(profile);
 ```
 
-### `$toNTiples()`
+### `toNTiples(linkedDataObject)`
 ```typescript
-const rawNTriples: string = await profile.$toNTriples();
+import { toNTriples } from "ldo"
+// ...
+const rawNTriples: string = await toNTriples(profile);
 ```
 
-### `$toSparqlUpdate()`
+### `serialize(linkedDataObject, options)`
 ```typescript
-const sparqlUpdate: string = await profile.$toSparqlUpdate();
-```
-Sometimes you may want to know how a document should be updated based on the modifications made to it. LDO keeps track of all the changes that have been since the object was created. You can call `$toSparqlUpdate()` to get the updates in the Sparql Update format. This is particularly useful for Solid applications.
-
-### `$serialize(options)`
-```typescript
-const sparqlUpdate: string = await profile.$serialize({
+const rawTurtle: string = await profile.$serialize({
   format: "Turtle",
   prefixes: {
     ex: "https://example.com/",
@@ -237,40 +267,52 @@ const sparqlUpdate: string = await profile.$serialize({
   }
 });
 ```
-`$serialize(options)` provides general serialization based on provided options:
+`serialize(linkedDataObject, options)` provides general serialization based on provided options:
  - `foramt` (optional): The format to serialize to. The following are acceptable formats: `Turtle`, `TriG`, `N-Triples`, `N-Quads`, `N3`, `Notation3`.
  - `prefixes`: The prefixes for those serializations that use prefixes.
 
-## Other LDO Methods
+## Transactions
 
-### `$dataset()`
+Sometimes, you want to keep track of changes you make for the object. This is where transactions come in handy.
+
+To start a transaction, use the `startTransaction(linkedDataObject)` function. From then on, all transactions will be tracked, but not added to the original ldoDataset. You can view the changes using the `transactionChanges(linkedDataObject)` or `toSparqlUpdate(linkedDataObject)` methods. When you're done with the transaction, you can run the `commitTransaction(linkedDataObject)` method to add the changes to the original ldoDataset.
+
+```typescript
+import {
+  startTransaction,
+  transactionChanges,
+  toSparqlUpdate,
+  commitTransaction,
+} from "ldo"; 
+
+// ... Get the profile linked data object
+
+startTransaction(profile);
+profile.name = "Kuzon"
+const changes = transactionChanges(profile));
+// Logs: <https://example.com/aang> <http://xmlns.com/foaf/0.1/name> "Kuzon"
+console.log(changes.added?.toString())
+// Logs: <https://example.com/aang> <http://xmlns.com/foaf/0.1/name> "Aang"
+console.log(changes.removed?.toString())
+console.log(await toSparqlUpdate(profile));
+commitTransaction(profile);
+```
+
+## Other LDO Helper Functions
+
+### `getDataset(linkedDataObject)`
 Returns the Linked Data Object's underlying RDFJS dataset. Modifying this dataset will change the Linked Data Object as well.
 ```typescript
 import { Dataset } from "@rdfjs/types";
-const dataset: Dataset = profile.$dataset();
+import { getDataset } from "ldo"
+const dataset: Dataset = dataset(profile);
 ```
 
-### `$changes()`
-Shows the RDF changes that have happened to the Linked Data Object since it was created.
-```typescript
-profile.name = "Kuzon"
-// Logs: <https://example.com/aang> <http://xmlns.com/foaf/0.1/name> "Kuzon"
-console.log(profile.$changes().added?.toString());
-// Logs: <https://example.com/aang> <http://xmlns.com/foaf/0.1/name> "Aang"
-console.log(profile.$changes().removed?.toString());
-```
+## Sponsorship
+This project was made possible by a grant from NGI Zero Entrust via nlnet. Learn more on the [NLnet project page](https://nlnet.nl/project/SolidUsableApps/).
 
- Note that `added` and `removed` are optional.
-
-### `$clone()`
-Clones the current Linked Data Object and resets its changes.
-```typescript
-import { LinkedDataObject } from "ldo";
-import { FoafProfile } from "./ldo/foafProfile.typings";
-const clonedProfile: LinkedDataObject<FoafProfile> = profile.$clone();
-// Logs {} because no changes have been made
-console.log(profile.$changes());
-```
+[<img src="https://nlnet.nl/logo/banner.png" alt="nlnet foundation logo" width="300" />](https://nlnet.nl/)
+[<img src="https://nlnet.nl/image/logos/NGI0Entrust_tag.svg" alt="NGI Zero Entrust Logo" width="300" />](https://nlnet.nl/)
 
 ## Liscense
 MIT
