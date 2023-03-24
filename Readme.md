@@ -15,6 +15,8 @@ npx ldo-cli init
 ```
 
 ### Manual Setup
+The following is handled by the __automatic setup__:
+
 Install the LDO dependencies.
 ```bash
 npm install ldo
@@ -80,36 +82,83 @@ This will generate five files:
 Below is a simple example of LDO in a real use-case (changing the name on a Solid Pod)
 
 ```typescript
-import { parseRdf, startTransaction, toSparqlUpdate } from "ldo";
-import { FoafProfileShapeType } from "./ldo/foafProfile.shapeTypes.ts";
+import { parseRdf, startTransaction, toSparqlUpdate, toTurtle } from "ldo";
+import { FoafProfileShapeType } from "./ldo/foafProfile.shapeTypes";
 
-// Fetch profile
-fetch("https://solidweb.me/jackson/profile/card").then(async (response) => {
-  // Get raw text
-  const rawTurtle = await response.text();
-  // Parse the raw RDF. This yeilds an "LdoDataset"
+async function run() {
+  const rawTurtle = `
+  <#me> a <http://xmlns.com/foaf/0.1/Person>;
+      <http://xmlns.com/foaf/0.1/name> "Jane Doe".
+  `;
+
+  /**
+   * Step 1: Convert Raw RDF into a Linked Data Object
+   */
   const ldoDataset = await parseRdf(rawTurtle, {
-    baseIRI: "https://solidweb.me/jackson/profile/card",
+    baseIRI: "https://solidweb.me/jane_doe/profile/card",
   });
   // Create a linked data object by telling the dataset the type and subject of
   // the object
-  const profile = ldoDataset
+  const janeProfile = ldoDataset
+    // Tells the LDO dataset that we're looking for a FoafProfile
     .usingType(FoafProfileShapeType)
-    .fromSubject("https://solidweb.me/jackson/profile/card#me");
-  // Start a transaction
-  startTransaction(profile);
-  // Make a modification
-  profile.fn = "Cool Dude";
-  // Save the new information to the Pod
-  await fetch("https://solidweb.me/jackson/profile/card", {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/sparql-update",
+    // Says the subject of the FoafProfile
+    .fromSubject("https://solidweb.me/jane_doe/profile/card#me");
+
+  /**
+   * Step 2: Manipulate the Linked Data Object
+   */
+  // Logs "Jane Doe"
+  console.log(janeProfile.name);
+  // Logs "Person"
+  console.log(janeProfile.type);
+  // Logs 0
+  console.log(janeProfile.knows?.length);
+
+  // Begins a transaction that tracks your changes
+  startTransaction(janeProfile);
+  janeProfile.name = "Jane Smith";
+  janeProfile.knows?.push({
+    "@id": "https://solidweb.me/john_smith/profile/card#me",
+    type: {
+      "@id": "Person",
     },
-    // The body is a Sparql Update the has all the changes in this transaction
-    body: await toSparqlUpdate(profile),
+    name: "John Smith",
+    knows: [janeProfile],
   });
-});
+
+  // Logs "Jane Smith"
+  console.log(janeProfile.name);
+  // Logs "John Smith"
+  console.log(janeProfile.knows?.[0].name);
+  // Logs "Jane Smith"
+  console.log(janeProfile.knows?.[0].knows?.[0].name);
+
+  /**
+   * Step 3: Convert it back to RDF
+   */
+  // Logs:
+  // <https://solidweb.me/jane_doe/profile/card#me> a <http://xmlns.com/foaf/0.1/Person>;
+  //   <http://xmlns.com/foaf/0.1/name> "Jane Smith";
+  //   <http://xmlns.com/foaf/0.1/knows> <https://solidweb.me/john_smith/profile/card#me>.
+  // <https://solidweb.me/john_smith/profile/card#me> a <http://xmlns.com/foaf/0.1/Person>;
+  //   <http://xmlns.com/foaf/0.1/name> "John Smith";
+  //   <http://xmlns.com/foaf/0.1/knows> <https://solidweb.me/jane_doe/profile/card#me>.
+  console.log(await toTurtle(janeProfile));
+  // Logs:
+  // DELETE DATA {
+  //   <https://solidweb.me/jane_doe/profile/card#me> <http://xmlns.com/foaf/0.1/name> "Jane Doe" .
+  // };
+  // INSERT DATA {
+  //   <https://solidweb.me/jane_doe/profile/card#me> <http://xmlns.com/foaf/0.1/name> "Jane Smith" .
+  //   <https://solidweb.me/jane_doe/profile/card#me> <http://xmlns.com/foaf/0.1/knows> <https://solidweb.me/john_smith/profile/card#me> .
+  //   <https://solidweb.me/john_smith/profile/card#me> <http://xmlns.com/foaf/0.1/name> "John Smith" .
+  //   <https://solidweb.me/john_smith/profile/card#me> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+  //   <https://solidweb.me/john_smith/profile/card#me> <http://xmlns.com/foaf/0.1/knows> <https://solidweb.me/jane_doe/profile/card#me> .
+  // }
+  console.log(await toSparqlUpdate(janeProfile));
+}
+run();
 ```
 
 ## Getting an LDO Dataset

@@ -6,7 +6,7 @@ import {
   _proxyContext,
 } from "jsonld-dataset-proxy";
 import { createDataset } from "o-dataset-pack";
-import { ProfileShapeType, SolidProfileShape } from "../example/profileData";
+import { ProfileShapeType, SolidProfileShape } from "./profileData";
 import {
   commitTransaction,
   createLdoDataset,
