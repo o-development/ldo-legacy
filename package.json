@@ -1,6 +1,6 @@
 {
   "name": "ldo",
-  "version": "0.0.12",
+  "version": "1.0.1",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -44,7 +44,7 @@
   "dependencies": {
     "@rdfjs/data-model": "^1.2.0",
     "buffer": "^6.0.3",
-    "jsonld-dataset-proxy": "^1.0.0",
+    "jsonld-dataset-proxy": "^1.0.1",
     "n3": "^1.16.2",
     "o-dataset-pack": "^0.2.11",
     "readable-stream": "^4.3.0"

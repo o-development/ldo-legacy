@@ -1,6 +1,6 @@
 import { literal, namedNode, quad } from "@rdfjs/data-model";
 import { createDataset } from "o-dataset-pack";
-import { ProfileShapeType, SolidProfileShape } from "../example/profileData";
+import { ProfileShapeType, SolidProfileShape } from "./profileData";
 import {
   createLdoDataset,
   graphOf,
