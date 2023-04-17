@@ -4,6 +4,7 @@ import {
   QuadMatch,
   SubjectType,
   _proxyContext,
+  LanguageOrdering,
 } from "jsonld-dataset-proxy";
 import { ShapeType } from "./ShapeType";
 import { LdoBase, normalizeNodeName, normalizeNodeNames } from "./util";
@@ -31,6 +32,21 @@ export class LdoBuilder<Type extends LdoBase> {
   write(...graphs: (GraphType | string)[]): LdoBuilder<Type> {
     return new LdoBuilder(
       this.jsonldDatasetProxyBuilder.write(...normalizeNodeNames(graphs)),
+      this.shapeType
+    );
+  }
+
+  /**
+   * Sets the order of language preferences for Language Strings. Acceptable
+   * values as EITF language tags, "@none" and "@other"
+   */
+  setLanguagePreferences(
+    ...languageOrdering: LanguageOrdering
+  ): LdoBuilder<Type> {
+    return new LdoBuilder(
+      this.jsonldDatasetProxyBuilder.setLanguagePreferences(
+        ...languageOrdering
+      ),
       this.shapeType
     );
   }

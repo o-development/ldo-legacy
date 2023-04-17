@@ -10,6 +10,7 @@ import {
   toTurtle,
 } from "../lib";
 import { sampleJsonld, sampleTurtle } from "./sampleData";
+import { SubjectProxy, _proxyContext } from "jsonld-dataset-proxy";
 
 describe("LdoDataset", () => {
   let ldoDataset: LdoDataset;
@@ -151,12 +152,21 @@ describe("LdoDataset", () => {
     expect(profiles[0].fn).toBe("Jackson Morgan");
   });
 
-  it("Handles alternat optionality for object match", () => {
+  it("Handles alternate optionality for object match", () => {
     const profiles = profileBuilder.matchObject(
       "https://someSubject",
       undefined,
       "https://someGraph.com"
     );
     expect(profiles.length).toBe(0);
+  });
+
+  it("Sets language preferences", () => {
+    const profile = profileBuilder
+      .setLanguagePreferences("@none", "en")
+      .fromSubject("https://solidweb.org/jackson/profile/card#me");
+    expect(
+      (profile as unknown as SubjectProxy)[_proxyContext].languageOrdering
+    ).toEqual(["@none", "en"]);
   });
 });

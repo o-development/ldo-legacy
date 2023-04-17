@@ -18,7 +18,11 @@ import {
   normalizeNodeNames,
 } from "./util";
 
-export { graphOf } from "jsonld-dataset-proxy";
+export {
+  graphOf,
+  languagesOf,
+  setLanguagePreferences,
+} from "jsonld-dataset-proxy";
 
 export function write(...graphs: (GraphType | string)[]): InteractOptions {
   return writeDependency(...normalizeNodeNames(graphs));

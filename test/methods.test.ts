@@ -4,6 +4,7 @@ import {
   graphOf,
   _getUnderlyingDataset,
   _proxyContext,
+  SubjectProxy,
 } from "jsonld-dataset-proxy";
 import { createDataset } from "o-dataset-pack";
 import { ProfileShapeType, SolidProfileShape } from "./profileData";
@@ -20,6 +21,8 @@ import {
   toTurtle,
   transactionChanges,
   write,
+  setLanguagePreferences,
+  languagesOf,
 } from "../lib";
 
 describe("methods", () => {
@@ -131,5 +134,17 @@ describe("methods", () => {
     write("https://graphname.com").using(profile);
     profile.name = "Jackson";
     expect(graphOf(profile, "name")[0].value).toBe("https://graphname.com");
+  });
+
+  it("sets the language preferences", () => {
+    setLanguagePreferences("@none", "en").using(profile);
+    expect(
+      (profile as unknown as SubjectProxy)[_proxyContext].languageOrdering
+    ).toEqual(["@none", "en"]);
+  });
+
+  it("uses languagesOf", () => {
+    const result = languagesOf(profile, "name");
+    expect(result).toEqual({});
   });
 });
