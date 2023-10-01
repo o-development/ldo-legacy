@@ -1,3 +1,5 @@
+> :warning: **This repository is archived**: It's contents have been moved to a new [monorepo](https://github.com/o-development/ldo/).
+
 # LDO (Linked Data Objects)
 
 LDO (Linked Data Objects) is a library that lets you easily manipulate RDF as if it were a standard TypeScript object that follows a [ShEx](https://shex.io) shape you define.
